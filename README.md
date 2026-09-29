@@ -12,6 +12,9 @@
   [![Release](https://img.shields.io/github/v/release/dika-putra/heartbeat)](https://github.com/dika-putra/heartbeat/releases/latest)
 </div>
 
+## Preview
+<img width="270" height="488" alt="Screenshot 2026-09-29 at 15 30 13" src="https://github.com/user-attachments/assets/e4a76e21-ba86-4d4c-993d-b508eef215e8" />
+
 ## Download
 
 Grab the latest `.dmg` from the [Releases page](https://github.com/dika-putra/heartbeat/releases/latest),
