@@ -81,4 +81,27 @@ final class ReminderSchedulerTests: XCTestCase {
         scheduler.reconfigure(makeSettings(mode: .urgent))
         XCTAssertEqual(scheduler.currentState(), .activeUrgent)
     }
+
+    // MARK: - Grid-aligned first fire
+
+    func test_nextAlignedFireDate_skipsBoundaryLessThanOneFullIntervalAway() {
+        let scheduler = ReminderScheduler(settings: makeSettings(mode: .urgent), clock: FakeClock(date(hour: 12, minute: 0)))
+        // Start at 10:55, 10-min interval: 11:00 is only 5 min away (< 1 interval), so it's skipped.
+        let fireDate = scheduler.nextAlignedFireDate(intervalSeconds: 10 * 60, after: date(hour: 10, minute: 55))
+        XCTAssertEqual(calendar.dateComponents([.hour, .minute], from: fireDate), DateComponents(hour: 11, minute: 10))
+    }
+
+    func test_nextAlignedFireDate_hitsExactBoundary_whenExactlyOneIntervalAway() {
+        let scheduler = ReminderScheduler(settings: makeSettings(mode: .urgent), clock: FakeClock(date(hour: 12, minute: 0)))
+        // Start at 10:50, 10-min interval: 11:00 is exactly one interval away, so it's used as-is.
+        let fireDate = scheduler.nextAlignedFireDate(intervalSeconds: 10 * 60, after: date(hour: 10, minute: 50))
+        XCTAssertEqual(calendar.dateComponents([.hour, .minute], from: fireDate), DateComponents(hour: 11, minute: 0))
+    }
+
+    func test_nextAlignedFireDate_alignsToIntervalGrid_forLongerInterval() {
+        let scheduler = ReminderScheduler(settings: makeSettings(mode: .normal), clock: FakeClock(date(hour: 12, minute: 0)))
+        // Start at 10:35, 30-min interval: grid is :00/:30, earliest is 11:05, next grid point is 11:30.
+        let fireDate = scheduler.nextAlignedFireDate(intervalSeconds: 30 * 60, after: date(hour: 10, minute: 35))
+        XCTAssertEqual(calendar.dateComponents([.hour, .minute], from: fireDate), DateComponents(hour: 11, minute: 30))
+    }
 }

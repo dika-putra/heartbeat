@@ -233,6 +233,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func editMessage() {
         let alert = NSAlert()
         alert.messageText = "Reminder message"
+        alert.informativeText = "Tip: include [HH:mm] or [HH:mm:ss] to show the current time when the reminder fires."
 
         let field = NSTextField(string: settings.message)
         field.frame = NSRect(x: 0, y: 0, width: 240, height: 24)
@@ -260,6 +261,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func persistAndReconfigure() {
         settingsStore.save(settings)
         scheduler.reconfigure(settings.schedulerSettings)
+        updateIcon(for: scheduler.currentState())
         rebuildMenu()
     }
 

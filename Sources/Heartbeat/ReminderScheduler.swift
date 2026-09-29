@@ -47,9 +47,23 @@ final class ReminderScheduler {
         onFire?()
     }
 
+    /// Smallest multiple of `intervalSeconds` since local midnight that is at
+    /// least one full interval after `referenceDate` — e.g. starting at 10:55
+    /// with a 10-minute interval fires first at 11:10, not 11:00 (only 5 min
+    /// away) or 11:05 (unaligned to the grid).
+    func nextAlignedFireDate(intervalSeconds: TimeInterval, after referenceDate: Date, calendar: Calendar = .current) -> Date {
+        let earliestFireDate = referenceDate.addingTimeInterval(intervalSeconds)
+        let startOfDay = calendar.startOfDay(for: earliestFireDate)
+        let secondsSinceStartOfDay = earliestFireDate.timeIntervalSince(startOfDay)
+        let intervalsElapsed = (secondsSinceStartOfDay / intervalSeconds).rounded(.up)
+        return startOfDay.addingTimeInterval(intervalsElapsed * intervalSeconds)
+    }
+
     func start() {
+        let intervalSeconds = settings.currentIntervalSeconds
+        let fireDate = nextAlignedFireDate(intervalSeconds: intervalSeconds, after: clock.now())
         let source = DispatchSource.makeTimerSource(queue: .main)
-        source.schedule(deadline: .now() + settings.currentIntervalSeconds, repeating: settings.currentIntervalSeconds)
+        source.schedule(deadline: .now() + fireDate.timeIntervalSince(clock.now()), repeating: intervalSeconds)
         source.setEventHandler { [weak self] in self?.tick() }
         source.resume()
         timer = source
