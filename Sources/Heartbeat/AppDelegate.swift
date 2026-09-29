@@ -428,8 +428,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     @objc private func showAbout() {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev"
+
         let alert = NSAlert()
-        alert.messageText = "Heartbeat"
+        alert.messageText = "Heartbeat \(version)"
         alert.informativeText = """
         A macOS menu bar app that nudges you to check your work at a \
         configurable interval.
