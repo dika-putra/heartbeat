@@ -5,6 +5,10 @@
 
   A macOS menu bar app that nudges you to check your work at a configurable
   interval — for people who don't already have that habit.
+
+  ![Platform](https://img.shields.io/badge/platform-macOS%2013%2B-blue)
+  ![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange)
+  ![License](https://img.shields.io/badge/license-MIT-green)
 </div>
 
 ## Features
@@ -22,7 +26,7 @@
 Requires macOS 13+ and Swift 5.9+ (ships with Xcode 15+).
 
 ```bash
-git clone <this-repo-url>
+git clone git@github.com:dika-putra/heartbeat.git
 cd heartbeat
 ./scripts/build-app.sh
 open dist/Heartbeat.app
@@ -49,4 +53,4 @@ swift test
 
 ## License
 
-MIT (or your preferred opensource license — replace this line).
+[MIT](LICENSE)
