@@ -306,6 +306,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let field = NSTextField(string: "\(formattedTime(settings.activeHoursStartHour, settings.activeHoursStartMinute))-\(formattedTime(settings.activeHoursEndHour, settings.activeHoursEndMinute))")
         field.frame = NSRect(x: 0, y: 0, width: 200, height: 24)
         alert.accessoryView = field
+        alert.window.initialFirstResponder = field
         alert.addButton(withTitle: "Save")
         alert.addButton(withTitle: "Cancel")
 
@@ -340,6 +341,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let field = NSTextField(string: settings.message)
         field.frame = NSRect(x: 0, y: 0, width: 240, height: 24)
         alert.accessoryView = field
+        alert.window.initialFirstResponder = field
         alert.addButton(withTitle: "Save")
         alert.addButton(withTitle: "Cancel")
 
@@ -364,6 +366,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let field = NSTextField(string: settings.actionType == .openURL ? settings.actionValue : "https://")
         field.frame = NSRect(x: 0, y: 0, width: 280, height: 24)
         alert.accessoryView = field
+        alert.window.initialFirstResponder = field
         alert.addButton(withTitle: "Save")
         alert.addButton(withTitle: "Cancel")
 
