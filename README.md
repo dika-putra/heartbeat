@@ -45,13 +45,20 @@ open dist/Heartbeat.app
 Drag `dist/Heartbeat.app` to `/Applications`.
 
 This build is **not notarized** by Apple. On first launch, macOS Gatekeeper
-will warn that it's from an unidentified developer. To open it anyway:
+will warn that it's from an unidentified developer (downloading the `.dmg`
+via a browser adds a quarantine flag, which can make this warning stricter —
+sometimes "Heartbeat can't be opened because Apple cannot check it for
+malicious software", with no visible bypass option). To open it anyway:
 
-1. Right-click (or Control-click) `Heartbeat.app` → **Open**.
-2. Click **Open** in the dialog that appears.
-
-(Alternative: System Settings → Privacy & Security → scroll down and click
-**Open Anyway**.)
+1. Right-click (or Control-click) `Heartbeat.app` in `/Applications` → **Open**
+   → **Open** again in the dialog.
+2. If that doesn't offer an **Open** option: System Settings → Privacy &
+   Security → scroll down → **Open Anyway**.
+3. If it's still blocked, clear the quarantine flag directly in Terminal:
+   ```bash
+   xattr -cr /Applications/Heartbeat.app
+   ```
+   then open it normally.
 
 ## Running tests
 
