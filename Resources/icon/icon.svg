@@ -1,0 +1,26 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF5F7A"/>
+      <stop offset="1" stop-color="#D81B4A"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1024" height="1024" rx="228" fill="url(#bg)"/>
+
+  <path d="M512 812
+           C 512 812 176 604 176 384
+           C 176 262 268 182 380 182
+           C 452 182 500 220 512 268
+           C 524 220 572 182 644 182
+           C 756 182 848 262 848 384
+           C 848 604 512 812 512 812 Z"
+        fill="#FFFFFF"/>
+
+  <polyline points="248,470 380,470 430,360 482,560 534,420 578,470 776,470"
+            fill="none"
+            stroke="#D81B4A"
+            stroke-width="30"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+</svg>

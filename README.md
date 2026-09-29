@@ -1,7 +1,11 @@
+<div align="center">
+  <img src="Resources/icon/icon.svg" width="128" height="128" alt="Heartbeat icon">
+
 # Heartbeat
 
-A macOS menu bar app that reminds you to check your work at a configurable
-interval — for people who don't already have that habit.
+  A macOS menu bar app that nudges you to check your work at a configurable
+  interval — for people who don't already have that habit.
+</div>
 
 ## Features
 
