@@ -12,6 +12,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private let systemSoundNames = ["Basso", "Blow", "Glass", "Ping", "Pop", "Submarine"]
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        setUpEditMenu()
+
         settings = settingsStore.load()
 
         if settings.launchAtLogin {
@@ -33,6 +35,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         rebuildMenu()
 
         scheduler.start()
+    }
+
+    // MARK: - Edit menu
+
+    // As an accessory (menu bar only) app, Heartbeat has no main menu by
+    // default, so there's no "Edit" menu wiring Cmd+C/V/X/A to the standard
+    // NSText selectors. Without it, those shortcuts silently do nothing in
+    // any text field, including the alert dialogs below.
+    private func setUpEditMenu() {
+        let mainMenu = NSMenu()
+
+        let editMenuItem = NSMenuItem()
+        mainMenu.addItem(editMenuItem)
+
+        let editMenu = NSMenu(title: "Edit")
+        editMenu.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
+        let redoItem = editMenu.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "z")
+        redoItem.keyEquivalentModifierMask = [.command, .shift]
+        editMenu.addItem(.separator())
+        editMenu.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        editMenu.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        editMenu.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        editMenu.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        editMenuItem.submenu = editMenu
+
+        NSApp.mainMenu = mainMenu
     }
 
     // MARK: - Reminder firing
