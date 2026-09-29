@@ -10,22 +10,24 @@ private final class FakeClock: Clock {
 final class ReminderSchedulerTests: XCTestCase {
     private let calendar = Calendar(identifier: .gregorian)
 
-    private func date(hour: Int, minute: Int) -> Date {
+    // 2026-09-29 is a Tuesday; 2026-10-03/04 are Saturday/Sunday.
+    private func date(year: Int = 2026, month: Int = 9, day: Int = 29, hour: Int, minute: Int) -> Date {
         var components = DateComponents()
-        components.year = 2026
-        components.month = 9
-        components.day = 29
+        components.year = year
+        components.month = month
+        components.day = day
         components.hour = hour
         components.minute = minute
         return calendar.date(from: components)!
     }
 
-    private func makeSettings(mode: ReminderMode) -> SchedulerSettings {
+    private func makeSettings(mode: ReminderMode, weekdaysOnly: Bool = false) -> SchedulerSettings {
         SchedulerSettings(
             mode: mode,
             normalIntervalMinutes: 30,
             urgentIntervalMinutes: 10,
-            activeHours: ActiveHours(startHour: 8, startMinute: 0, endHour: 17, endMinute: 0)
+            activeHours: ActiveHours(startHour: 8, startMinute: 0, endHour: 17, endMinute: 0),
+            weekdaysOnly: weekdaysOnly
         )
     }
 
@@ -131,5 +133,48 @@ final class ReminderSchedulerTests: XCTestCase {
         // First boundary (11:10) has passed; steady-state fires are every 10 min after that.
         clock.fixedDate = date(hour: 11, minute: 15)
         XCTAssertEqual(calendar.dateComponents([.hour, .minute], from: scheduler.nextFireDate()!), DateComponents(hour: 11, minute: 20))
+    }
+
+    // MARK: - Weekdays-only
+
+    func test_currentState_isActive_onWeekend_whenWeekdaysOnlyIsOff() {
+        // 2026-10-03 is a Saturday.
+        let clock = FakeClock(date(month: 10, day: 3, hour: 12, minute: 0))
+        let scheduler = ReminderScheduler(settings: makeSettings(mode: .normal, weekdaysOnly: false), clock: clock)
+        XCTAssertEqual(scheduler.currentState(), .activeNormal)
+    }
+
+    func test_currentState_isPaused_onSaturday_whenWeekdaysOnlyIsOn() {
+        let clock = FakeClock(date(month: 10, day: 3, hour: 12, minute: 0))
+        let scheduler = ReminderScheduler(settings: makeSettings(mode: .normal, weekdaysOnly: true), clock: clock)
+        XCTAssertEqual(scheduler.currentState(), .paused)
+    }
+
+    func test_currentState_isPaused_onSunday_whenWeekdaysOnlyIsOn() {
+        // 2026-10-04 is a Sunday.
+        let clock = FakeClock(date(month: 10, day: 4, hour: 12, minute: 0))
+        let scheduler = ReminderScheduler(settings: makeSettings(mode: .normal, weekdaysOnly: true), clock: clock)
+        XCTAssertEqual(scheduler.currentState(), .paused)
+    }
+
+    func test_currentState_isActive_onWeekday_whenWeekdaysOnlyIsOn() {
+        // 2026-09-29 is a Tuesday.
+        let clock = FakeClock(date(hour: 12, minute: 0))
+        let scheduler = ReminderScheduler(settings: makeSettings(mode: .normal, weekdaysOnly: true), clock: clock)
+        XCTAssertEqual(scheduler.currentState(), .activeNormal)
+    }
+
+    func test_pauseReason_distinguishesWeekendFromOutsideActiveHours() {
+        let weekendClock = FakeClock(date(month: 10, day: 3, hour: 12, minute: 0))
+        let weekendScheduler = ReminderScheduler(settings: makeSettings(mode: .normal, weekdaysOnly: true), clock: weekendClock)
+        XCTAssertEqual(weekendScheduler.pauseReason(), .weekend)
+
+        let nightClock = FakeClock(date(hour: 20, minute: 0))
+        let nightScheduler = ReminderScheduler(settings: makeSettings(mode: .normal), clock: nightClock)
+        XCTAssertEqual(nightScheduler.pauseReason(), .outsideActiveHours)
+
+        let activeClock = FakeClock(date(hour: 12, minute: 0))
+        let activeScheduler = ReminderScheduler(settings: makeSettings(mode: .normal), clock: activeClock)
+        XCTAssertNil(activeScheduler.pauseReason())
     }
 }

@@ -16,6 +16,7 @@ struct SchedulerSettings {
     var normalIntervalMinutes: Int
     var urgentIntervalMinutes: Int
     var activeHours: ActiveHours
+    var weekdaysOnly: Bool
 
     var currentIntervalSeconds: TimeInterval {
         let minutes = mode == .normal ? normalIntervalMinutes : urgentIntervalMinutes

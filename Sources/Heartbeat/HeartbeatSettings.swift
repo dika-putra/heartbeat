@@ -13,6 +13,7 @@ struct HeartbeatSettings: Codable, Equatable {
     var launchAtLogin: Bool
     var actionType: NotificationActionType
     var actionValue: String
+    var weekdaysOnly: Bool
 
     init(
         mode: ReminderMode,
@@ -26,7 +27,8 @@ struct HeartbeatSettings: Codable, Equatable {
         soundName: String,
         launchAtLogin: Bool,
         actionType: NotificationActionType = .none,
-        actionValue: String = ""
+        actionValue: String = "",
+        weekdaysOnly: Bool = false
     ) {
         self.mode = mode
         self.normalIntervalMinutes = normalIntervalMinutes
@@ -40,11 +42,12 @@ struct HeartbeatSettings: Codable, Equatable {
         self.launchAtLogin = launchAtLogin
         self.actionType = actionType
         self.actionValue = actionValue
+        self.weekdaysOnly = weekdaysOnly
     }
 
-    // Custom decoding so settings saved before `actionType`/`actionValue`
-    // existed still load instead of silently falling back to `.default`
-    // and wiping the user's saved preferences.
+    // Custom decoding so settings saved before newer fields existed still
+    // load instead of silently falling back to `.default` and wiping the
+    // user's saved preferences.
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         mode = try container.decode(ReminderMode.self, forKey: .mode)
@@ -59,6 +62,7 @@ struct HeartbeatSettings: Codable, Equatable {
         launchAtLogin = try container.decode(Bool.self, forKey: .launchAtLogin)
         actionType = try container.decodeIfPresent(NotificationActionType.self, forKey: .actionType) ?? .none
         actionValue = try container.decodeIfPresent(String.self, forKey: .actionValue) ?? ""
+        weekdaysOnly = try container.decodeIfPresent(Bool.self, forKey: .weekdaysOnly) ?? false
     }
 
     static let `default` = HeartbeatSettings(
@@ -90,7 +94,8 @@ struct HeartbeatSettings: Codable, Equatable {
             mode: mode,
             normalIntervalMinutes: normalIntervalMinutes,
             urgentIntervalMinutes: urgentIntervalMinutes,
-            activeHours: activeHours
+            activeHours: activeHours,
+            weekdaysOnly: weekdaysOnly
         )
     }
 }

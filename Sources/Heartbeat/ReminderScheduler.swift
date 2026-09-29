@@ -15,6 +15,11 @@ final class ReminderScheduler {
         case paused
     }
 
+    enum PauseReason {
+        case outsideActiveHours
+        case weekend
+    }
+
     var onFire: (() -> Void)?
     var onStateChange: ((SchedulerState) -> Void)?
 
@@ -28,8 +33,17 @@ final class ReminderScheduler {
     }
 
     func currentState() -> SchedulerState {
-        guard settings.activeHours.contains(clock.now()) else { return .paused }
+        guard pauseReason() == nil else { return .paused }
         return settings.mode == .normal ? .activeNormal : .activeUrgent
+    }
+
+    func pauseReason(calendar: Calendar = .current) -> PauseReason? {
+        guard settings.activeHours.contains(clock.now(), calendar: calendar) else { return .outsideActiveHours }
+        if settings.weekdaysOnly {
+            let weekday = calendar.component(.weekday, from: clock.now())
+            if weekday == 1 || weekday == 7 { return .weekend }
+        }
+        return nil
     }
 
     func reconfigure(_ newSettings: SchedulerSettings) {
@@ -92,3 +106,4 @@ final class ReminderScheduler {
 }
 
 extension ReminderScheduler.SchedulerState: Equatable {}
+extension ReminderScheduler.PauseReason: Equatable {}

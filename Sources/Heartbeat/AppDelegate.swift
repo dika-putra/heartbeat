@@ -3,6 +3,7 @@ import UserNotifications
 
 final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     private var statusItem: NSStatusItem!
+    private var countdownTimer: Timer?
     private let settingsStore = SettingsStore()
     private let notificationManager = NotificationManager()
     private let loginItemManager = LoginItemManager()
@@ -24,17 +25,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         scheduler.onFire = { [weak self] in self?.fireReminder() }
         scheduler.onStateChange = { [weak self] state in
             self?.updateIcon(for: state)
+            self?.updateCountdownTitle()
             self?.rebuildMenu()
         }
 
         UNUserNotificationCenter.current().delegate = self
         notificationManager.requestAuthorization { _ in }
 
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusItem.button?.imagePosition = .imageLeading
         updateIcon(for: scheduler.currentState())
+        updateCountdownTitle()
         rebuildMenu()
 
         scheduler.start()
+
+        countdownTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+            self?.updateCountdownTitle()
+        }
     }
 
     // MARK: - Edit menu
@@ -116,6 +124,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         statusItem.button?.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "Heartbeat")
     }
 
+    private func updateCountdownTitle() {
+        guard scheduler.pauseReason() == nil, let nextFireDate = scheduler.nextFireDate() else {
+            statusItem.button?.title = ""
+            return
+        }
+        let secondsRemaining = nextFireDate.timeIntervalSinceNow
+        guard secondsRemaining > 0 else {
+            statusItem.button?.title = ""
+            return
+        }
+        let minutesRemaining = Int((secondsRemaining / 60).rounded(.up))
+        statusItem.button?.title = " \(minutesRemaining)m"
+    }
+
     // MARK: - Menu
 
     private func rebuildMenu() {
@@ -124,8 +146,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let statusLabel = settings.mode == .normal ? "Active (Normal)" : "Active (Urgent)"
         menu.addItem(NSMenuItem(title: "● \(statusLabel)", action: nil, keyEquivalent: ""))
 
-        if scheduler.currentState() == .paused {
-            menu.addItem(NSMenuItem(title: "Next reminder: outside active hours", action: nil, keyEquivalent: ""))
+        if let pauseReason = scheduler.pauseReason() {
+            let reasonText: String
+            switch pauseReason {
+            case .outsideActiveHours: reasonText = "outside active hours"
+            case .weekend: reasonText = "weekend (weekdays only is on)"
+            }
+            menu.addItem(NSMenuItem(title: "Next reminder: \(reasonText)", action: nil, keyEquivalent: ""))
         } else if let nextFireDate = scheduler.nextFireDate() {
             menu.addItem(NSMenuItem(title: "Next reminder: \(formattedClockTime(nextFireDate))", action: nil, keyEquivalent: ""))
         }
@@ -154,6 +181,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         )
         activeHoursItem.target = self
         menu.addItem(activeHoursItem)
+
+        let weekdaysOnlyItem = NSMenuItem(title: "Weekdays only", action: #selector(toggleWeekdaysOnly), keyEquivalent: "")
+        weekdaysOnlyItem.target = self
+        weekdaysOnlyItem.state = settings.weekdaysOnly ? .on : .off
+        menu.addItem(weekdaysOnlyItem)
         menu.addItem(.separator())
 
         let messageItem = NSMenuItem(title: "Edit message…", action: #selector(editMessage), keyEquivalent: "")
@@ -348,6 +380,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         persistAndReconfigure()
     }
 
+    @objc private func toggleWeekdaysOnly() {
+        settings.weekdaysOnly.toggle()
+        persistAndReconfigure()
+    }
+
     private func parseActiveHours(_ text: String) -> (Int, Int, Int, Int)? {
         let parts = text.split(separator: "-")
         guard parts.count == 2 else { return nil }
@@ -456,6 +493,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         settingsStore.save(settings)
         scheduler.reconfigure(settings.schedulerSettings)
         updateIcon(for: scheduler.currentState())
+        updateCountdownTitle()
         rebuildMenu()
     }
 

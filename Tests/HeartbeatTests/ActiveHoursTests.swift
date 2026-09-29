@@ -34,7 +34,8 @@ final class ActiveHoursTests: XCTestCase {
             mode: .normal,
             normalIntervalMinutes: 30,
             urgentIntervalMinutes: 10,
-            activeHours: ActiveHours(startHour: 8, startMinute: 0, endHour: 17, endMinute: 0)
+            activeHours: ActiveHours(startHour: 8, startMinute: 0, endHour: 17, endMinute: 0),
+            weekdaysOnly: false
         )
         XCTAssertEqual(settings.currentIntervalSeconds, 30 * 60)
     }
@@ -44,7 +45,8 @@ final class ActiveHoursTests: XCTestCase {
             mode: .urgent,
             normalIntervalMinutes: 30,
             urgentIntervalMinutes: 10,
-            activeHours: ActiveHours(startHour: 8, startMinute: 0, endHour: 17, endMinute: 0)
+            activeHours: ActiveHours(startHour: 8, startMinute: 0, endHour: 17, endMinute: 0),
+            weekdaysOnly: false
         )
         XCTAssertEqual(settings.currentIntervalSeconds, 10 * 60)
     }
