@@ -2,10 +2,9 @@
 
 ## Problem
 
-User pengen habit "cek kerjaan tiap N waktu" (kayak yang manager mereka lakuin
-manual) jadi otomatis, buat orang yang belum punya habit itu. Aplikasi macOS
-menu bar yang kasih notif+suara tiap interval tertentu, biar gak ada follow-up
-kerjaan yang kelewat.
+User pengen habit "cek kerjaan tiap N waktu" jadi otomatis, buat orang yang
+belum punya habit itu. Aplikasi macOS menu bar yang kasih notif+suara tiap
+interval tertentu, biar gak ada follow-up kerjaan yang kelewat.
 
 ## Scope
 
