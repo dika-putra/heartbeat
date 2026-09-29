@@ -11,6 +11,8 @@ struct HeartbeatSettings: Codable, Equatable {
     var message: String
     var soundName: String
     var launchAtLogin: Bool
+    var actionType: NotificationActionType
+    var actionValue: String
 
     static let `default` = HeartbeatSettings(
         mode: .normal,
@@ -20,9 +22,11 @@ struct HeartbeatSettings: Codable, Equatable {
         activeHoursStartMinute: 0,
         activeHoursEndHour: 17,
         activeHoursEndMinute: 0,
-        message: "Waktunya cek kerjaanmu!",
+        message: "Waktunya cek kerjaanmu! [dd MMM yyyy HH:mm]",
         soundName: "Glass",
-        launchAtLogin: true
+        launchAtLogin: true,
+        actionType: .none,
+        actionValue: ""
     )
 
     var activeHours: ActiveHours {

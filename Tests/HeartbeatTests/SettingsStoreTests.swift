@@ -32,4 +32,15 @@ final class SettingsStoreTests: XCTestCase {
 
         XCTAssertEqual(store.load(), settings)
     }
+
+    func test_save_thenLoad_roundTripsNotificationAction() {
+        let store = SettingsStore(defaults: defaults)
+        var settings = HeartbeatSettings.default
+        settings.actionType = .openURL
+        settings.actionValue = "https://example.com"
+
+        store.save(settings)
+
+        XCTAssertEqual(store.load(), settings)
+    }
 }

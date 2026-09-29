@@ -5,6 +5,12 @@ enum ReminderMode: String, Codable {
     case urgent
 }
 
+enum NotificationActionType: String, Codable {
+    case none
+    case openURL
+    case openApp
+}
+
 struct SchedulerSettings {
     var mode: ReminderMode
     var normalIntervalMinutes: Int

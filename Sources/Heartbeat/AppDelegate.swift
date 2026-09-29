@@ -1,7 +1,7 @@
 import AppKit
 import UserNotifications
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     private var statusItem: NSStatusItem!
     private let settingsStore = SettingsStore()
     private let notificationManager = NotificationManager()
@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         scheduler.onFire = { [weak self] in self?.fireReminder() }
         scheduler.onStateChange = { [weak self] state in self?.updateIcon(for: state) }
 
+        UNUserNotificationCenter.current().delegate = self
         notificationManager.requestAuthorization { _ in }
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -35,6 +36,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func fireReminder() {
         notificationManager.fire(message: settings.message, soundName: settings.soundName)
+    }
+
+    // MARK: - Notification interaction
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound])
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        guard response.notification.request.identifier == NotificationManager.reminderIdentifier else {
+            completionHandler()
+            return
+        }
+        performNotificationAction()
+        completionHandler()
+    }
+
+    private func performNotificationAction() {
+        switch settings.actionType {
+        case .none:
+            break
+        case .openURL:
+            guard let url = URL(string: settings.actionValue) else { return }
+            NSWorkspace.shared.open(url)
+        case .openApp:
+            NSWorkspace.shared.open(URL(fileURLWithPath: settings.actionValue))
+        }
     }
 
     // MARK: - Icon
@@ -91,6 +127,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(makeSoundSubmenu())
         menu.addItem(.separator())
 
+        menu.addItem(makeActionSubmenu())
+        menu.addItem(.separator())
+
         let launchAtLoginItem = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
         launchAtLoginItem.target = self
         launchAtLoginItem.state = settings.launchAtLogin ? .on : .off
@@ -141,6 +180,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         submenu.addItem(customItem)
 
         let parent = NSMenuItem(title: "Sound: \(settings.soundName)", action: nil, keyEquivalent: "")
+        parent.submenu = submenu
+        return parent
+    }
+
+    private func makeActionSubmenu() -> NSMenuItem {
+        let submenu = NSMenu()
+
+        let noneItem = NSMenuItem(title: "None (just clear notification)", action: #selector(setActionNone), keyEquivalent: "")
+        noneItem.target = self
+        noneItem.state = settings.actionType == .none ? .on : .off
+        submenu.addItem(noneItem)
+
+        let urlItem = NSMenuItem(title: "Open URL…", action: #selector(setActionURL), keyEquivalent: "")
+        urlItem.target = self
+        urlItem.state = settings.actionType == .openURL ? .on : .off
+        submenu.addItem(urlItem)
+
+        let appItem = NSMenuItem(title: "Open App…", action: #selector(setActionApp), keyEquivalent: "")
+        appItem.target = self
+        appItem.state = settings.actionType == .openApp ? .on : .off
+        submenu.addItem(appItem)
+
+        let subtitle: String
+        switch settings.actionType {
+        case .none: subtitle = "None"
+        case .openURL: subtitle = "Open URL"
+        case .openApp: subtitle = "Open App"
+        }
+        let parent = NSMenuItem(title: "On click: \(subtitle)", action: nil, keyEquivalent: "")
         parent.submenu = submenu
         return parent
     }
@@ -259,6 +327,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !field.stringValue.trimmingCharacters(in: .whitespaces).isEmpty else { return }
 
         settings.message = field.stringValue
+        persistAndReconfigure()
+    }
+
+    @objc private func setActionNone() {
+        settings.actionType = .none
+        settings.actionValue = ""
+        persistAndReconfigure()
+    }
+
+    @objc private func setActionURL() {
+        let alert = NSAlert()
+        alert.messageText = "Open URL on click"
+        alert.informativeText = "e.g. https://your-task-board.example.com"
+
+        let field = NSTextField(string: settings.actionType == .openURL ? settings.actionValue : "https://")
+        field.frame = NSRect(x: 0, y: 0, width: 280, height: 24)
+        alert.accessoryView = field
+        alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: "Cancel")
+
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        guard let url = URL(string: field.stringValue), url.scheme != nil else {
+            presentAlert(message: "That doesn't look like a valid URL.")
+            return
+        }
+
+        settings.actionType = .openURL
+        settings.actionValue = url.absoluteString
+        persistAndReconfigure()
+    }
+
+    @objc private func setActionApp() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.application]
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        guard panel.runModal() == .OK, let appURL = panel.url else { return }
+
+        settings.actionType = .openApp
+        settings.actionValue = appURL.path
         persistAndReconfigure()
     }
 
