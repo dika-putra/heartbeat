@@ -9,7 +9,15 @@
   ![Platform](https://img.shields.io/badge/platform-macOS%2013%2B-blue)
   ![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange)
   ![License](https://img.shields.io/badge/license-MIT-green)
+  [![Release](https://img.shields.io/github/v/release/dika-putra/heartbeat)](https://github.com/dika-putra/heartbeat/releases/latest)
 </div>
+
+## Download
+
+Grab the latest `.dmg` from the [Releases page](https://github.com/dika-putra/heartbeat/releases/latest),
+open it, and drag Heartbeat into Applications. See
+[Installing the built app](#installing-the-built-app) below for the
+Gatekeeper "unidentified developer" step.
 
 ## Features
 
