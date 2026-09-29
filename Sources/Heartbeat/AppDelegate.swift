@@ -173,6 +173,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let name = sender.representedObject as? String else { return }
         settings.soundName = name
         persistAndReconfigure()
+        previewSound(named: name)
     }
 
     @objc private func chooseCustomSound() {
@@ -189,11 +190,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let convertedURL = try SoundConverter().convertToCaf(sourceURL: sourceURL, destinationDirectory: destinationDirectory)
             settings.soundName = convertedURL.deletingPathExtension().lastPathComponent
             persistAndReconfigure()
+            previewSound(at: convertedURL)
         } catch SoundConverterError.tooLong {
             presentAlert(message: "That sound is longer than 30 seconds. Choose a shorter clip.")
         } catch {
             presentAlert(message: "Couldn't convert that sound file. Falling back to the current sound.")
         }
+    }
+
+    private var soundPreview: NSSound?
+
+    private func previewSound(named name: String) {
+        soundPreview = NSSound(named: name)
+        soundPreview?.play()
+    }
+
+    private func previewSound(at url: URL) {
+        soundPreview = NSSound(contentsOf: url, byReference: true)
+        soundPreview?.play()
     }
 
     @objc private func editActiveHours() {

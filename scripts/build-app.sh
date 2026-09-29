@@ -13,4 +13,9 @@ cp "$(swift build -c release --show-bin-path)/Heartbeat" "$APP_DIR/Contents/MacO
 cp Resources/Info.plist "$APP_DIR/Contents/Info.plist"
 cp Resources/icon/AppIcon.icns "$APP_DIR/Contents/Resources/AppIcon.icns"
 
+# Ad-hoc sign the whole bundle so Info.plist (and its CFBundleIdentifier) is
+# bound to the signature — without this, macOS won't reliably register the
+# app with Notification Center under com.heartbeat.app.
+codesign --force --deep -s - "$APP_DIR"
+
 echo "Built $APP_DIR"
