@@ -69,7 +69,7 @@ struct HeartbeatSettings: Codable, Equatable {
         activeHoursStartMinute: 0,
         activeHoursEndHour: 17,
         activeHoursEndMinute: 0,
-        message: "Waktunya cek kerjaanmu! [dd MMM yyyy HH:mm]",
+        message: "Waktunya cek kerjaanmu! [HH:mm]",
         soundName: "Glass",
         launchAtLogin: true,
         actionType: .none,
