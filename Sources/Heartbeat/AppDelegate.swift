@@ -20,7 +20,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         scheduler = ReminderScheduler(settings: settings.schedulerSettings)
         scheduler.onFire = { [weak self] in self?.fireReminder() }
-        scheduler.onStateChange = { [weak self] state in self?.updateIcon(for: state) }
+        scheduler.onStateChange = { [weak self] state in
+            self?.updateIcon(for: state)
+            self?.rebuildMenu()
+        }
 
         UNUserNotificationCenter.current().delegate = self
         notificationManager.requestAuthorization { _ in }
@@ -92,6 +95,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         let statusLabel = settings.mode == .normal ? "Active (Normal)" : "Active (Urgent)"
         menu.addItem(NSMenuItem(title: "● \(statusLabel)", action: nil, keyEquivalent: ""))
+
+        if scheduler.currentState() == .paused {
+            menu.addItem(NSMenuItem(title: "Next reminder: outside active hours", action: nil, keyEquivalent: ""))
+        } else if let nextFireDate = scheduler.nextFireDate() {
+            menu.addItem(NSMenuItem(title: "Next reminder: \(formattedClockTime(nextFireDate))", action: nil, keyEquivalent: ""))
+        }
         menu.addItem(.separator())
 
         menu.addItem(makeModeItem(title: "Normal mode", mode: .normal))
@@ -220,6 +229,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     private func formattedTime(_ hour: Int, _ minute: Int) -> String {
         String(format: "%02d:%02d", hour, minute)
+    }
+
+    private func formattedClockTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
     }
 
     // MARK: - Actions

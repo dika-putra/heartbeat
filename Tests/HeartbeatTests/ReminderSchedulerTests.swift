@@ -104,4 +104,32 @@ final class ReminderSchedulerTests: XCTestCase {
         let fireDate = scheduler.nextAlignedFireDate(intervalSeconds: 30 * 60, after: date(hour: 10, minute: 35))
         XCTAssertEqual(calendar.dateComponents([.hour, .minute], from: fireDate), DateComponents(hour: 11, minute: 30))
     }
+
+    // MARK: - nextFireDate() for menu display
+
+    func test_nextFireDate_isNil_beforeStart() {
+        let scheduler = ReminderScheduler(settings: makeSettings(mode: .urgent), clock: FakeClock(date(hour: 12, minute: 0)))
+        XCTAssertNil(scheduler.nextFireDate())
+    }
+
+    func test_nextFireDate_matchesFirstAlignedFireDate_rightAfterStart() {
+        let clock = FakeClock(date(hour: 10, minute: 55))
+        let scheduler = ReminderScheduler(settings: makeSettings(mode: .urgent), clock: clock)
+        scheduler.start()
+        defer { scheduler.stop() }
+
+        // 10-min interval starting at 10:55 aligns to 11:10 (see grid-aligned tests above).
+        XCTAssertEqual(calendar.dateComponents([.hour, .minute], from: scheduler.nextFireDate()!), DateComponents(hour: 11, minute: 10))
+    }
+
+    func test_nextFireDate_advancesToNextGridBoundary_asTimePasses() {
+        let clock = FakeClock(date(hour: 10, minute: 55))
+        let scheduler = ReminderScheduler(settings: makeSettings(mode: .urgent), clock: clock)
+        scheduler.start()
+        defer { scheduler.stop() }
+
+        // First boundary (11:10) has passed; steady-state fires are every 10 min after that.
+        clock.fixedDate = date(hour: 11, minute: 15)
+        XCTAssertEqual(calendar.dateComponents([.hour, .minute], from: scheduler.nextFireDate()!), DateComponents(hour: 11, minute: 20))
+    }
 }
