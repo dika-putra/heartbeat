@@ -136,6 +136,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         menu.addItem(launchAtLoginItem)
 
         menu.addItem(.separator())
+        let aboutItem = NSMenuItem(title: "About Heartbeat…", action: #selector(showAbout), keyEquivalent: "")
+        aboutItem.target = self
+        menu.addItem(aboutItem)
+
+        menu.addItem(.separator())
         let quitItem = NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
@@ -374,6 +379,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         settings.launchAtLogin.toggle()
         loginItemManager.setEnabled(settings.launchAtLogin)
         persistAndReconfigure()
+    }
+
+    @objc private func showAbout() {
+        let alert = NSAlert()
+        alert.messageText = "Heartbeat"
+        alert.informativeText = """
+        A macOS menu bar app that nudges you to check your work at a \
+        configurable interval.
+
+        Created by dika-putra.
+
+        Found an issue or want to contribute? Visit the GitHub repo.
+        """
+        alert.addButton(withTitle: "Open GitHub")
+        alert.addButton(withTitle: "Close")
+
+        if alert.runModal() == .alertFirstButtonReturn {
+            NSWorkspace.shared.open(URL(string: "https://github.com/dika-putra/heartbeat")!)
+        }
     }
 
     @objc private func quit() {
