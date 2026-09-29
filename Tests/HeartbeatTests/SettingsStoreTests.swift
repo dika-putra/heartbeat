@@ -43,4 +43,21 @@ final class SettingsStoreTests: XCTestCase {
 
         XCTAssertEqual(store.load(), settings)
     }
+
+    func test_load_migratesSettingsSavedBeforeActionFieldsExisted() {
+        let oldSchemaJSON = """
+        {"mode":"normal","normalIntervalMinutes":30,"urgentIntervalMinutes":10,\
+        "activeHoursStartHour":8,"activeHoursStartMinute":0,"activeHoursEndHour":17,\
+        "activeHoursEndMinute":0,"message":"Old message","soundName":"Pop","launchAtLogin":true}
+        """
+        defaults.set(Data(oldSchemaJSON.utf8), forKey: "com.heartbeat.settings")
+
+        let store = SettingsStore(defaults: defaults)
+        let loaded = store.load()
+
+        XCTAssertEqual(loaded.soundName, "Pop")
+        XCTAssertEqual(loaded.message, "Old message")
+        XCTAssertEqual(loaded.actionType, .none)
+        XCTAssertEqual(loaded.actionValue, "")
+    }
 }
