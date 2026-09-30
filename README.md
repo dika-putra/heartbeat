@@ -13,7 +13,7 @@
 </div>
 
 ## Preview
-<img width="270" height="488" alt="Screenshot 2026-09-29 at 15 30 13" src="https://github.com/user-attachments/assets/e4a76e21-ba86-4d4c-993d-b508eef215e8" />
+<img width="256" height="478" alt="Screenshot 2026-09-30 at 09 13 20" src="https://github.com/user-attachments/assets/2237adac-5ba3-47bc-a775-1234bd6625ce" />
 
 ## Download
 
