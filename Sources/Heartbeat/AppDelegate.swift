@@ -30,9 +30,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem.button?.imagePosition = .imageLeading
-        refreshDisplay()
 
+        // start() must run before the first refreshDisplay() — it's what
+        // computes nextFireDate(), which is nil until then. Building the
+        // menu first left "Next reminder" blank until something else
+        // (a settings change, or the 30s timer) forced a later refresh.
         scheduler.start()
+        refreshDisplay()
 
         // The reminder timer only ticks on the scheduled interval grid, so
         // without this, the menu's "outside active hours" / countdown text
