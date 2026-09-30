@@ -23,26 +23,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         scheduler = ReminderScheduler(settings: settings.schedulerSettings)
         scheduler.onFire = { [weak self] in self?.fireReminder() }
-        scheduler.onStateChange = { [weak self] state in
-            self?.updateIcon(for: state)
-            self?.updateCountdownTitle()
-            self?.rebuildMenu()
-        }
+        scheduler.onStateChange = { [weak self] _ in self?.refreshDisplay() }
 
         UNUserNotificationCenter.current().delegate = self
         notificationManager.requestAuthorization { _ in }
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem.button?.imagePosition = .imageLeading
-        updateIcon(for: scheduler.currentState())
-        updateCountdownTitle()
-        rebuildMenu()
+        refreshDisplay()
 
         scheduler.start()
 
+        // The reminder timer only ticks on the scheduled interval grid, so
+        // without this, the menu's "outside active hours" / countdown text
+        // would stay stale for however long it's been since the last tick
+        // (e.g. still showing "outside active hours" well after crossing
+        // into the active window). This keeps it live regardless.
         countdownTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
-            self?.updateCountdownTitle()
+            self?.refreshDisplay()
         }
+    }
+
+    private func refreshDisplay() {
+        let state = scheduler.currentState()
+        updateIcon(for: state)
+        updateCountdownTitle()
+        rebuildMenu()
     }
 
     // MARK: - Edit menu
@@ -492,9 +498,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private func persistAndReconfigure() {
         settingsStore.save(settings)
         scheduler.reconfigure(settings.schedulerSettings)
-        updateIcon(for: scheduler.currentState())
-        updateCountdownTitle()
-        rebuildMenu()
+        refreshDisplay()
     }
 
     private func presentAlert(message: String) {
