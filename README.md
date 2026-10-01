@@ -25,10 +25,14 @@ Gatekeeper "unidentified developer" step.
 ## Features
 
 - Configurable reminder interval, with separate Normal and Urgent modes
-- Notifications only fire during a configurable active-hours window
-  (default 08:00–17:00)
-- Custom or system notification sound
-- Custom reminder message
+- Reminders align to the interval grid (e.g. :00/:10/:20) and only fire
+  inside a configurable active-hours window (default 08:00–17:00)
+- Optional weekdays-only schedule, skipping Saturday/Sunday
+- Custom message, with `[HH:mm]` / `[HH:mm:ss]`-style timestamp tokens
+- System or custom notification sound, with preview
+- Click a reminder to open a URL or an app
+- Menu shows the next reminder time, plus a live countdown next to the
+  menu bar icon
 - Launch at login
 - Notifications replace each other instead of stacking
 
@@ -42,6 +46,9 @@ cd heartbeat
 ./scripts/build-app.sh
 open dist/Heartbeat.app
 ```
+
+To build a distributable `.dmg` instead (named after the version in
+`Resources/Info.plist`), run `./scripts/build-dmg.sh`.
 
 ## Installing the built app
 
